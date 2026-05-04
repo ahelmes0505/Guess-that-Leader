@@ -1,0 +1,158 @@
+import { useState, useMemo, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+
+// --- GAME DATA --------------------------------------------------
+
+const people = [
+  "Danny",
+  "Emily",
+  "Ellis",
+  "Sharad",
+  "Maggie",
+  "Michelle",
+  "Luis",
+  "Mary",
+  "Wes",
+];
+
+const FACT_DATA = [
+  { text: "I once slept on the roof of my house in a sleeping bag. It was a gabled roof and I sleepwalk, so not the brightest idea.", answer: "Danny" },
+  { text: "I have 30 aunts and uncles and 50 cousins", answer: "Emily" },
+  { text: "My first concert was the Backstreet Boys", answer: "Ellis" },
+  { text: "In my senior year, I chose math over biology because I couldn’t imagine not studying math, even though I wanted to be a doctor. Now all my friends from that time are doctors, and I’m the only engineer.", answer: "Sharad" },
+  { text: "I was a TV star at 5 years old. I tap danced with my sister on a kids PBS special", answer: "Maggie" },
+  { text: "I’m not a big TV watcher now, but I got really into watching The Amazing Race during the early months of pandemic lockdown in 2020. One of my goals is to be on the show—I’ve already applied once and plan to again.", answer: "Michelle" },
+  { text: "Destined to be a professional soccer player until a high school injury steered them to Structural Engineering", answer: "Luis" },
+  { text: "I wake up at 5 a.m. every morning, and 4 out of 7 days I help teach a 6 a.m. outdoor bootcamp class—rain or shine.", answer: "Mary" },
+  { text: "When I was in kindergarten, I “married” a classmate. It didn’t last long. Sixteen years later, that classmate married my best friend, and I was in their wedding party.", answer: "Wes" },
+];
+
+// --- UTILS -----------------------------------------------------
+const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
+
+// --- APP --------------------------------------------------------
+export default function FunFactMatchingGame() {
+  const [started, setStarted] = useState(false);
+  const [facts, setFacts] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [guesses, setGuesses] = useState({});
+  const [finished, setFinished] = useState(false);
+
+  useEffect(() => {
+    setFacts(shuffleArray(FACT_DATA));
+  }, []);
+
+  const currentFact = facts[currentIndex];
+
+  const handleGuess = (person) => {
+    setGuesses({ ...guesses, [currentIndex]: person });
+
+    if (currentIndex + 1 < facts.length) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      setFinished(true);
+    }
+  };
+
+  const score = useMemo(() => {
+    return facts.reduce((total, fact, idx) => {
+      return total + (guesses[idx] === fact.answer ? 1 : 0);
+    }, 0);
+  }, [guesses, facts]);
+
+  const progressPercent = ((currentIndex + 1) / facts.length) * 100;
+  if (facts.length === 0) return null;
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+      <Card className="w-full max-w-xl shadow-lg rounded-2xl">
+        <CardContent className="p-6 space-y-6">
+
+          {!started ? (
+            <>
+              <motion.h2
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-2xl font-bold text-center"
+              >
+                Guess that Leader!
+              </motion.h2>
+
+              <p className="text-center text-lg text-gray-600">
+                Match each fact to one of the leaders in our offices!
+              </p>
+
+              <div className="flex justify-center pt-4">
+                <Button size="lg" onClick={() => setStarted(true)}>
+                  Start Game
+                </Button>
+              </div>
+            </>
+          ) : !finished ? (
+            <>
+              {/* Progress Bar */}
+              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-green-500"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPercent}%` }}
+                  transition={{ ease: "easeOut", duration: 0.4 }}
+                />
+              </div>
+
+
+              <motion.h2
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-xl font-semibold text-center pt-2"
+              >
+                Which person matches this fact?
+              </motion.h2>
+
+              <motion.div
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="p-4 bg-white rounded-xl shadow-sm text-center text-lg"
+              >
+                {currentFact.text}
+              </motion.div>
+
+              <div className="grid grid-cols-1 gap-3 pt-4">
+                {people.map((person) => (
+                  <Button
+                    key={person}
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => handleGuess(person)}
+                  >
+                    {person}
+                  </Button>
+                ))}
+              </div>
+
+              <div className="text-sm text-center text-gray-500 pt-2">
+                Question {currentIndex + 1} of {facts.length}
+              </div>
+            </>
+          ) : (
+            <>
+              <motion.h2
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="text-2xl font-bold text-center"
+              >
+                Game Complete 🎉
+              </motion.h2>
+
+              <div className="text-center text-xl font-semibold">
+                Your score: {score} / {facts.length}
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
