@@ -1,2 +1,2 @@
 # Guess-that-Leader
-This is an basic matching game used as an icebreaker for my office. 
+This matching game is used to match the leader in our offices to a fun fact you might not know!
